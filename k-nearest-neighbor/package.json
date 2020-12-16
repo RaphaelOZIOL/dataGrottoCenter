@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "node-xlrd": "^0.2.4"
+    "node-kmeans": "^1.1.9",
+    "node-xlrd": "^0.2.4",
+    "node-xlsx": "^0.15.0",
+    "read-excel-file": "^4.1.0"
   }
 }

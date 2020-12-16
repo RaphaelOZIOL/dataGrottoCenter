@@ -1,19 +1,19 @@
-// node.js用来读取xls文件的包
+// Packets used by node.js to read XLS files
 var xls = require('node-xlrd');
 
-// Sample表示一个样本
+// Sample represents a sample
 var Sample = function (object) {
-    // 把传过来的对象上的属性克隆到新创建的样本上
+    // Clone attributes from the passed object to the newly created sample
     for (var key in object)
     {
-        // 检验属性是否属于对象自身
+        // Verify whether attributes belong to the object itself
         if (object.hasOwnProperty(key)) {
             this[key] = object[key];
         }
     }
 }
 
-// 计算样本间距离 采用欧式距离
+// The Euclidean distance is used to calculate the distance between samples.
 Sample.prototype.measureDistances = function(a, b, c, d, e, f, g, h, i, j, k) { 
     for (var i in this.neighbors)
     {
@@ -30,91 +30,91 @@ Sample.prototype.measureDistances = function(a, b, c, d, e, f, g, h, i, j, k) {
         var j = neighbor.j - this.j;
         var k = neighbor.k - this.k;
        
-        // 计算欧式距离
+        // Calculating Euclidean Distance
         neighbor.distance = Math.sqrt(a*a + b*b + c*c + d*d + e*e + f*f + g*g + h*h + i*i + j*j + k*k);
     }
 };
 
-// 将邻居样本根据与预测样本间距离排序
+// Sort neighbor samples according to the distance between the predicted samples and the predicted samples
 Sample.prototype.sortByDistance = function() {
     this.neighbors.sort(function (a, b) {
         return a.distance - b.distance;
     });
 };
 
-// 判断被预测样本类别
+// Judging the Category of Predicted Samples
 Sample.prototype.guessType = function(k) {
-    // 有两种类别 1和-1
+    // There are two categories 1 and - 1
     var types = { '1': 0, '-1': 0 };
-    // 根据k值截取邻居里面前k个
+    // intercept the first k of neighbors according to K value
     for (var i in this.neighbors.slice(0, k))
     {
         var neighbor = this.neighbors[i];
         types[neighbor.trueType] += 1;
     }
     
-    // 判断邻居里哪个样本类型多
+    // Judging which sample type is more in the neighborhood
     if(types['1']>types['-1']){
         this.type = '1';
     } else {
         this.type = '-1';
     }
+    
 };
 
 
-// SampleSet管理所有样本 参数k表示KNN中的k
+// SampleSet manages all sample parameters k to represent K in KNN
 var SampleSet = function(k) { 
     this.samples = [];
     this.k = k;
 };
 
-// 将样本加入样本数组
+// Add samples to the sample array
 SampleSet.prototype.add = function(sample) {
     this.samples.push(sample);
 }
 
 
-// 构建总样本数组，包含未知类型样本
+// Construct an array of total samples with unknown types of samples
 SampleSet.prototype.determineUnknown = function() {
     /*
-     * 一旦发现某个未知类型样本，就把所有已知的样本 
-     * 克隆出来作为该未知样本的邻居序列。
-     * 之所以这样做是因为我们需要计算该未知样本和所有已知样本的距离。
+     * Once an unknown type of sample is found, all known samples are taken. 
+     * Cloned as the neighbor sequence of the unknown sample.
+     * The reason for this is that we need to calculate the distance between the unknown sample and all known samples.
      */
     for (var i in this.samples)
     {
-        // 如果发现没有类型的样本
+        // If no type of sample is found
         if ( ! this.samples[i].type)
         {
-            // 初始化未知样本的邻居
+            // Initialize Neighbors of Unknown Samples
             this.samples[i].neighbors = [];
             
-            // 生成邻居集
+            // Generating Neighbor Sets
             for (var j in this.samples)
             {
-                // 如果碰到未知样本 跳过
+                // If an unknown sample is encountered, skip
                 if ( ! this.samples[j].type)
                     continue;
                 this.samples[i].neighbors.push( new Sample(this.samples[j]) );
             }
             
-            // 计算所有邻居与预测样本的距离
+            // Calculating the Distance between All Neighbors and Predicted Samples
             this.samples[i].measureDistances(this.a, this.b, this.c, this.d, this.e, this.f, this.g, this.h, this.k);
 
-            // 把所有邻居按距离排序
+            // Sort all neighbors by distance
             this.samples[i].sortByDistance();
 
-            // 猜测预测样本类型
+            // guess the type of forecasting sample
             this.samples[i].guessType(this.k);
         }
     }
 };
 
 var data = [];
-// 将文件中的数据映射到样本的属性
+// Mapping the data in the file to the attributes of the sample
 var map = ['a','b','c','d','e','f','g','h','i','j','k'];
-
-// 读取文件
+// Read files
 xls.open('data.xls', function(err,bk){
     if(err) {console.log(err.name, err.message); return;}
     var shtCount = bk.sheet.count;
@@ -130,8 +130,7 @@ xls.open('data.xls', function(err,bk){
             data.push(item);
         }
     }
-
-    // 等文件读取完毕后 执行测试
+    // Execute the test after reading the file.
     run();
 });
 
@@ -162,9 +161,9 @@ function run() {
             count++;
         }
     }
-    console.log("留一法交叉验证的对的个数: " + count);// k为4时输出55
+    console.log("Le nombre de paires pour la validation croisée avec un retrait " + count);// k为4时输出55
     var percent = count/96;
-    console.log("留一法交叉验证分类精度: " + percent);// 分类精度为0.572916666666..
+    console.log("Précision de la classification de validation croisée sans réponse: " + percent);// 分类精度为0.572916666666..
 
 
     // 下面做十倍交叉验证！
@@ -221,7 +220,7 @@ function run() {
     }
     
     // 因为每次都把数据随机打乱一下 所以每次精度都不同
-    console.log("10倍交叉验证的分类精度: "+totalPercent/10);
+    console.log("Précision de classification par validation croisée 10 fois:"+totalPercent/10);
 }
 
 
